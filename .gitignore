@@ -7,8 +7,8 @@ env/
 venv/
 results/*
 !results/.gitkeep
-*.xlsx
-*.csv
 .DS_Store
 begin_script.py
 *.egg-info/
+/output/
+/result.xlsx
