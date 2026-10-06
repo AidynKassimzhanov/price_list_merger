@@ -1,0 +1,16 @@
+{
+  "suppliers": {
+    "supplier_a": {
+      "sku": "Артикул",
+      "name": "Название",
+      "price": "Цена",
+      "quantity": "Остаток"
+    },
+    "supplier_b": {
+      "sku": "sku",
+      "name": "product_name",
+      "price": "price",
+      "quantity": "quantity"
+    }
+  }
+}
