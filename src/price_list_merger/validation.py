@@ -6,26 +6,42 @@ import pandas as pd
 def validate_dataframe(
     df: pd.DataFrame, min_price: float = 0.0
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Разделяет DataFrame на валидные и невалидные строки.
+    """Разделяет строки на корректные и некорректные.
 
-    Критерии валидности:
-    1. Название (`name`) не пустое.
-    2. Цена больше `min_price`.
+    В некорректной таблице добавляет колонку errors с причинами.
     """
-    if df.empty:
-        return df.copy(), df.copy()
+    errors = []
 
-    # Обязательное условие: non-empty name
-    has_name = df["name"].astype(str).str.strip() != "" if "name" in df.columns else False
+    for _, row in df.iterrows():
+        row_errors = []
 
-    # Цена должна быть строго больше min_price
-    valid_price = df["price"] > min_price if "price" in df.columns else True
+        sku = row.get("sku")
+        if pd.isna(sku) or not str(sku).strip():
+            row_errors.append("Не указан артикул")
 
-    valid_mask = has_name & valid_price
+        name = row.get("name")
+        if pd.isna(name) or not str(name).strip():
+            row_errors.append("Не указано название")
 
-    valid_df = df[valid_mask].copy()
-    invalid_df = df[~valid_mask].copy()
+        price = row.get("price")
+        if pd.isna(price) or price <= min_price:
+            row_errors.append("Цена отсутствует или не больше нуля")
+
+        quantity = row.get("quantity")
+        if pd.isna(quantity):
+            row_errors.append("Не указано количество")
+        elif quantity < 0:
+            row_errors.append("Количество не может быть отрицательным")
+
+        errors.append("; ".join(row_errors))
+
+    result_df = df.copy()
+    result_df["errors"] = errors
+
+    invalid_mask = result_df["errors"] != ""
+
+    valid_df = result_df.loc[~invalid_mask].drop(columns="errors").copy()
+    invalid_df = result_df.loc[invalid_mask].copy()
 
     return valid_df, invalid_df
-    
     

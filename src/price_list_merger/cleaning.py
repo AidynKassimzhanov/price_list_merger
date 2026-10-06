@@ -45,20 +45,22 @@ def clean_price(value: str | float | int) -> float:
         return 0.0
 
 
-def clean_quantity(value: str | float | int) -> float:
-    # Преобразует значение количества в целое число (int).
-    if pd.isna(value) or value is None:
-        return 0
+def clean_quantity(value: str | float | int | None) -> int | None:
+    """Преобразует остаток в целое число.
+
+    Пустое или нечитаемое значение возвращает как None.
+    """
+    if value is None or pd.isna(value):
+        return None
 
     if isinstance(value, (int, float)):
         return int(value)
 
-    # Извлекаем первое попавшееся число из строки (например, "10 шт." -> 10)
-    match = re.search(r"\d+", str(value))
+    match = re.search(r"-?\d+", str(value))
     if match:
         return int(match.group())
 
-    return 0
+    return None
 
 
 def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:

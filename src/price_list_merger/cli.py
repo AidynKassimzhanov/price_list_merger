@@ -1,5 +1,5 @@
 # Главный модуль запуска CLI для price-list-merger.
-
+import pandas as pd
 import argparse
 from pathlib import Path
 
@@ -38,6 +38,7 @@ def main() -> None:
     config = load_mapping_config(args.config)
 
     cleaned_dfs = []
+    invalid_dfs = []
     total_invalid = 0
 
     print("Начинаем обработку прайс-листов...")
@@ -61,6 +62,12 @@ def main() -> None:
         valid_df, invalid_df = validate_dataframe(cleaned_df)
         total_invalid += len(invalid_df)
 
+        if not invalid_df.empty:
+            rejected_df = invalid_df.copy()
+            rejected_df["supplier"] = supplier_name
+            rejected_df["source_file"] = str(path)
+            invalid_dfs.append(rejected_df)
+
         print(f"   └─ Валидных строк: {len(valid_df)}, отбраковано: {len(invalid_df)}")
 
         cleaned_dfs.append(valid_df)
@@ -71,10 +78,19 @@ def main() -> None:
     # 7. Сохранение
     export_dataframe(final_df, args.output)
 
-    print("\n✅ Обработка завершена!")
-    print(f"📊 Итоговых позиций в объединенном прайсе: {len(final_df)}")
-    print(f"⚠️  Всего отбраковано позиций: {total_invalid}")
-    print(f"📁 Результат сохранен в: {args.output}")
+    if invalid_dfs:
+        output_path = Path(args.output)
+        rejected_path = output_path.with_name(
+            f"{output_path.stem}_rejected{output_path.suffix}"
+        )
+        rejected_df = pd.concat(invalid_dfs, ignore_index=True)
+        export_dataframe(rejected_df, rejected_path)
+        print(f"Файл с отбракованными строками сохранен: {rejected_path}")
+
+    print("\n Обработка завершена!")
+    print(f" Итоговых позиций в объединенном прайсе: {len(final_df)}")
+    print(f"  Всего отбраковано позиций: {total_invalid}")
+    print(f" Результат сохранен в: {args.output}")
 
 
 if __name__ == "__main__":

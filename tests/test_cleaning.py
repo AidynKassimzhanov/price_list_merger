@@ -23,7 +23,9 @@ class TestCleaning(unittest.TestCase):
     def test_clean_quantity(self):
         self.assertEqual(clean_quantity("10 шт."), 10)
         self.assertEqual(clean_quantity("5.0"), 5)
-        self.assertEqual(clean_quantity(None), 0)
+        self.assertEqual(clean_quantity("-2"), -2)
+        self.assertIsNone(clean_quantity(None))
+        self.assertIsNone(clean_quantity("abc"))
 
     def test_clean_dataframe(self):
         df = pd.DataFrame({
